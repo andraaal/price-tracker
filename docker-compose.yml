@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: postgres
+    restart: no
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  app:
+    build: .
+    container_name: app
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+      - cargo-target:/app/target
+      - cargo-registry:/usr/local/cargo/registry
+      - cargo-git:/usr/local/cargo/git
+    command: cargo run
+
+volumes:
+  postgres_data:
+  cargo-target:
+  cargo-registry:
+  cargo-git:
