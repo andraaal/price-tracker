@@ -13,14 +13,14 @@ services:
       - postgres_data:/var/lib/postgresql
 
   app:
-    build: .
+    build: ./backend
     container_name: app
     env_file:
-      - .env
+      - ./backend/.env
     depends_on:
       - postgres
     volumes:
-      - .:/app
+      - ./backend:/app
       - cargo-target:/app/target
       - cargo-registry:/usr/local/cargo/registry
       - cargo-git:/usr/local/cargo/git
