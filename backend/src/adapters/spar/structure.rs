@@ -71,7 +71,10 @@ impl Into<crate::product::Product> for SparProduct {
         let vendor = Vendor::Spar;
         let price = (prices.price * 100.0) as i16;
         let quantity = details.name3.unwrap_or("1 Stk.".to_string());
-        let image_url = details.image_url;
+        let image_url = details
+            .image_url
+            .replace("{ext}", "jpg")
+            .replace("{size}", "940");
 
         let reference = PriceReference {
             price: (prices.comparison_price * 100.0) as i16,
