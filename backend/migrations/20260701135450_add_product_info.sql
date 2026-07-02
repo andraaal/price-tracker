@@ -9,5 +9,5 @@ ADD COLUMN quantity text NOT NULL,
 ADD COLUMN image_url text NOT NULL,
 ADD COLUMN reference_price smallint NOT NULL,
 ADD COLUMN reference_unit text NOT NULL,
-ADD COLUMN reference_quantity text NOT NULL,
+ADD COLUMN reference_quantity smallint NOT NULL,
 ADD COLUMN tags tag[] NOT NULL

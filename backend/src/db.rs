@@ -1,7 +1,9 @@
+use anyhow::Result;
 use sqlx::{PgPool, postgres::PgPoolOptions};
 
 use crate::product::Product;
 
+#[derive(Clone)]
 pub struct DB {
     pub pool: PgPool,
 }
@@ -31,5 +33,12 @@ impl DB {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+
+    pub async fn get_all_products(&self) -> Result<Vec<Product>> {
+        let products = sqlx::query_as::<_, Product>("SELECT * FROM products")
+            .fetch_all(&self.pool)
+            .await?;
+        Ok(products)
     }
 }

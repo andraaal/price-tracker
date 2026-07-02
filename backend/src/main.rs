@@ -1,6 +1,8 @@
 use anyhow::Result;
-use axum::{Router, routing::get};
+use axum::{Router, extract::State, routing::get};
 use std::env;
+
+use crate::db::DB;
 
 mod adapters;
 mod client;
@@ -11,20 +13,16 @@ mod product;
 async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
 
+    let database_url = env::var("DATABASE_URL")?;
+    let db: DB = db::DB::new(&database_url).await?;
+    sqlx::migrate!().run(&db.pool).await?;
+
     let app = Router::new()
         .route("/api/hello", get(|| async { "Hello, World!" }))
-        .route(
-            "/api/refresh",
-            get(|| async {
-                match fetch_items().await {
-                    Ok(_) => "Items fetched and saved successfully.",
-                    Err(e) => {
-                        eprintln!("Error fetching items: {:?}", e);
-                        "Error fetching items."
-                    }
-                }
-            }),
-        );
+        .route("/api/refresh", get(refresh))
+        .with_state(db.clone())
+        .route("/api/products", get(get_products))
+        .with_state(db.clone());
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
     axum::serve(listener, app).await?;
@@ -32,11 +30,27 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn fetch_items() -> Result<()> {
-    let database_url = env::var("DATABASE_URL")?;
-    let db = db::DB::new(&database_url).await?;
-    sqlx::migrate!().run(&db.pool).await?;
+async fn get_products(State(db): State<DB>) -> axum::Json<Vec<product::Product>> {
+    match db.get_all_products().await {
+        Ok(products) => axum::Json(products),
+        Err(e) => {
+            eprintln!("Error fetching products: {:?}", e);
+            axum::Json(Vec::<product::Product>::new())
+        }
+    }
+}
 
+async fn refresh(State(db): State<DB>) -> &'static str {
+    match fetch_items(&db).await {
+        Ok(_) => "Items fetched and saved successfully.",
+        Err(e) => {
+            eprintln!("Error fetching items: {:?}", e);
+            "Error fetching items."
+        }
+    }
+}
+
+async fn fetch_items(db: &DB) -> Result<()> {
     let client = client::create_client()?;
     let items = adapters::spar::fetch_items(&client).await?;
 
