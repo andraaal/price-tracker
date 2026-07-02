@@ -1,3 +1,5 @@
+#[derive(sqlx::Type, Debug, Clone, Copy, PartialEq, Eq)]
+#[sqlx(type_name = "vendor")]
 pub enum Vendor {
     Spar,
 }

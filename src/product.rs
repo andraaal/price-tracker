@@ -7,12 +7,11 @@ pub struct Product {
     pub id: String,
     pub name: String,
     pub brand: String,
-    pub vendor: String,
-    pub price: u16,
+    pub vendor: vendor::Vendor,
+    pub price: i16,
     pub quantity: String,
     pub image_url: String,
 
-    pub reference: Option<price_reference::PriceReference>,
-    pub deposit: Option<u16>,
+    pub reference: price_reference::PriceReference,
     pub tags: Vec<tag::Tag>,
 }

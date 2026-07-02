@@ -1,21 +1,10 @@
-use serde::Deserialize;
+use anyhow::Result;
+use reqwest::Client;
 
-#[derive(Debug, Deserialize)]
-pub struct ProductList {
-    #[serde(rename = "hits")]
-    pub products: Vec<Product>,
-}
+mod fetcher;
+mod structure;
 
-#[derive(Debug, Deserialize)]
-pub struct Product {
-    pub id: String,
-    #[serde(rename = "masterValues")]
-    pub details: ProductDetails,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ProductDetails {
-    pub name1: String,
-    pub name2: Option<String>,
-    pub name3: Option<String>,
+pub async fn fetch_items(client: &Client) -> Result<Vec<crate::product::Product>> {
+    let items = fetcher::fetch(client).await?;
+    Ok(items)
 }

@@ -1,5 +1,6 @@
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PriceReference {
-    pub price: u16,
+    pub price: i16,
     pub unit: String,
-    pub quantity: u16,
+    pub quantity: i16,
 }
