@@ -24,10 +24,23 @@ services:
       - cargo-target:/app/target
       - cargo-registry:/usr/local/cargo/registry
       - cargo-git:/usr/local/cargo/git
-    command: cargo run
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    depends_on:
+      - app
+    volumes:
+      - ./frontend:/app
+      - product-node-modules:/app/node_modules
+    ports:
+      - "5173:5173"
 
 volumes:
   postgres_data:
   cargo-target:
   cargo-registry:
   cargo-git:
+  product-node-modules:
