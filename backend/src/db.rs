@@ -18,14 +18,16 @@ impl DB {
     }
 
     pub async fn save_product(&self, product: Product) -> Result<(), sqlx::Error> {
-        sqlx::query("INSERT INTO products (external_id, name, brand, vendor, price, quantity, image_url, reference_price, reference_unit, tags) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (external_id) DO NOTHING")
+        sqlx::query("INSERT INTO products (external_id, name, brand, vendor, price, base_price, quantity, image_url, shop_url, reference_price, reference_unit, tags) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (external_id) DO NOTHING")
             .bind(product.id)
             .bind(product.name)
             .bind(product.brand)
             .bind(product.vendor)
             .bind(product.price)
+            .bind(product.base_price)
             .bind(product.quantity)
             .bind(product.image_url)
+            .bind(product.shop_url)
             .bind(product.reference.price)
             .bind(product.reference.unit)
             .bind(product.tags)

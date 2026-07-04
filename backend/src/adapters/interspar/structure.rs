@@ -29,11 +29,9 @@ pub struct ProductDetails {
     #[serde(rename = "price-per-unit")]
     pub reference_price: String,
 
-    #[expect(unused)]
     #[serde(rename = "regular-price")]
     pub base_price: f32,
 
-    #[expect(unused)]
     #[serde(rename = "url")]
     pub shop_url: String,
 
@@ -64,8 +62,10 @@ impl Into<crate::product::Product> for SparProduct {
 
         let vendor = Vendor::Spar;
         let price = (details.price * 100.0) as i16;
+        let base_price = (details.base_price * 100.0) as i16;
         let quantity = details.quantity.unwrap_or("1 Stk.".to_string());
         let image_url = details.image_url;
+        let shop_url = details.shop_url;
 
         let reference =
             details
@@ -90,8 +90,10 @@ impl Into<crate::product::Product> for SparProduct {
             brand,
             vendor,
             price,
+            base_price,
             quantity,
             image_url,
+            shop_url,
             reference,
             tags,
         }

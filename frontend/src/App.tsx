@@ -62,17 +62,6 @@ function App() {
       const matchesTag = tagFilter === "all" || product.tags.includes(tagFilter);
       const matchesMaxPrice = Number.isNaN(maxPriceInCents) || product.price <= maxPriceInCents;
 
-      console.log(
-        product.name,
-        matchesSearch,
-        matchesVendor,
-        matchesTag,
-        matchesMaxPrice,
-        product.price,
-        maxPriceInCents,
-        parsedMaxPrice,
-      );
-
       return matchesSearch && matchesVendor && matchesTag && matchesMaxPrice;
     });
 

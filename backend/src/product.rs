@@ -9,12 +9,14 @@ pub struct Product {
     pub id: String,
     pub name: String,
     pub brand: String,
-    pub vendor: vendor::Vendor,
-    pub price: i16,
     pub quantity: String,
     pub image_url: String,
+    pub shop_url: String,
+    pub price: i16,
+    pub base_price: i16,
 
     #[sqlx(flatten)]
     pub reference: price_reference::PriceReference,
     pub tags: Vec<tag::Tag>,
+    pub vendor: vendor::Vendor,
 }

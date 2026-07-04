@@ -47,7 +47,6 @@ pub struct Price {
     pub comparison_unit: String,
 
     #[serde(rename = "basePrice")]
-    #[expect(unused)]
     pub base_price: f32,
 }
 
@@ -89,10 +88,15 @@ impl Into<crate::product::Product> for SparProduct {
             .filter_map(|tag| tag.ok())
             .collect();
 
+        let base_price = (prices.base_price * 100.0) as i16;
+        let shop_url = "Not implemented".to_string();
+
         crate::product::Product {
             id,
             name,
             brand,
+            base_price,
+            shop_url,
             vendor,
             price,
             quantity,
