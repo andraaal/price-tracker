@@ -18,7 +18,6 @@ async fn main() -> Result<()> {
     sqlx::migrate!().run(&db.pool).await?;
 
     let app = Router::new()
-        .route("/api/hello", get(|| async { "Hello, World!" }))
         .route("/api/refresh", get(refresh))
         .with_state(db.clone())
         .route("/api/products", get(get_products))
@@ -52,7 +51,7 @@ async fn refresh(State(db): State<DB>) -> &'static str {
 
 async fn fetch_items(db: &DB) -> Result<()> {
     let client = client::create_client()?;
-    let items = adapters::spar::fetch_items(&client).await?;
+    let items = adapters::interspar::fetch_items(&client).await?;
 
     for item in items {
         println!("Saved product: {} from {}", item.name, item.brand);

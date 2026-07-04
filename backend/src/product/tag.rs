@@ -29,7 +29,9 @@ impl FromStr for Tag {
             "gekühlt" => Ok(Tag::Cooled),
             "tiefgekühlt" => Ok(Tag::Frozen),
             e => {
-                println!("Error parsing tag: {}", e);
+                if !e.is_empty() {
+                    println!("Error parsing tag: {}", e);
+                }
                 Err(())
             }
         }

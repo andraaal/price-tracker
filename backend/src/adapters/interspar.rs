@@ -4,8 +4,6 @@ use reqwest::Client;
 mod fetcher;
 mod structure;
 
-/// Not used anymore; legacy implementation
-#[expect(dead_code)]
 pub async fn fetch_items(client: &Client) -> Result<Vec<crate::product::Product>> {
     let items = fetcher::fetch(client).await?;
     Ok(items)

@@ -45,9 +45,9 @@ pub struct Price {
     pub comparison_price: f32,
     #[serde(rename = "comparisonPrice_unit")]
     pub comparison_unit: String,
-    #[serde(rename = "comparisonPrice_quantity")]
-    pub comparison_quantity: i16,
+
     #[serde(rename = "basePrice")]
+    #[expect(unused)]
     pub base_price: f32,
 }
 
@@ -79,7 +79,6 @@ impl Into<crate::product::Product> for SparProduct {
         let reference = PriceReference {
             price: (prices.comparison_price * 100.0) as i16,
             unit: prices.comparison_unit,
-            quantity: prices.comparison_quantity,
         };
 
         let tags = details

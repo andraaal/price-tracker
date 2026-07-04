@@ -13,5 +13,4 @@ export type Product = {
 export type PriceReference = {
   price: number;
   unit: string;
-  quantity: number;
 };
