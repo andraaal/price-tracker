@@ -4,8 +4,10 @@ export type Product = {
   brand: string;
   vendor: string;
   price: number;
+  base_price: number;
   quantity: string;
   image_url: string;
+  shop_url: string;
   reference: PriceReference;
   tags: string[];
 };

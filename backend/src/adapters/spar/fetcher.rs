@@ -21,11 +21,7 @@ pub async fn fetch(client: &Client) -> Result<Vec<Product>> {
             products.push(item.into());
         }
 
-        // TODO remove when done testing
-        break;
-
-        #[expect(unreachable_code)]
-        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     }
 
     Ok(products)

@@ -65,7 +65,7 @@ impl Into<crate::product::Product> for SparProduct {
         let base_price = (details.base_price * 100.0) as i16;
         let quantity = details.quantity.unwrap_or("1 Stk.".to_string());
         let image_url = details.image_url;
-        let shop_url = details.shop_url;
+        let shop_url = "https://www.interspar.at/shop/lebensmittel".to_string() + &details.shop_url;
 
         let reference =
             details

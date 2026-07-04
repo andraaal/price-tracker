@@ -1,5 +1,5 @@
 services:
-  postgres_prod:
+  postgres:
     image: postgres:18
     restart: unless-stopped
     environment:
@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
-  app_prod:
+  app:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
@@ -19,7 +19,7 @@ services:
     depends_on:
       - postgres
 
-  frontend_prod:
+  frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
