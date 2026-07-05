@@ -4,6 +4,8 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:trixie-slim
+RUN apt update && apt install -y ca-certificates
+
 WORKDIR /app
 
 COPY --from=build /app/target/release/products /app/server

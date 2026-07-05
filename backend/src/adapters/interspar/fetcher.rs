@@ -7,7 +7,7 @@ use reqwest::Client;
 pub async fn fetch(client: &Client) -> Result<Vec<Product>> {
     let mut products: Vec<Product> = Vec::new();
 
-    for i in 1..=487 {
+    for i in 1..=282 {
         let url = format!(
             "https://search-spar.spar-ics.com/fact-finder/rest/v4/search/products_lmos_at?query=*&q=*&hitsPerPage=80&page={}",
             i
@@ -21,11 +21,7 @@ pub async fn fetch(client: &Client) -> Result<Vec<Product>> {
             products.push(item.into());
         }
 
-        // TODO remove when done testing
-        break;
-
-        #[expect(unreachable_code)]
-        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     }
 
     Ok(products)

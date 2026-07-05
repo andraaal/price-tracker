@@ -18,13 +18,12 @@ pub struct SparProduct {
 #[derive(Debug, Deserialize)]
 pub struct ProductDetails {
     /// Brand name, don't know why array
-    #[expect(unused)]
-    pub brand: Vec<String>,
+    pub brand: Option<Vec<String>>,
 
     pub price: f32,
 
     #[serde(rename = "ecr-brand")]
-    pub ecr_brand: String,
+    pub ecr_brand: Option<String>,
 
     #[serde(rename = "price-per-unit")]
     pub reference_price: String,
@@ -35,6 +34,7 @@ pub struct ProductDetails {
     #[serde(rename = "url")]
     pub shop_url: String,
 
+    #[serde(default = "default_name")]
     #[serde(rename = "short-description")]
     pub name: String,
 
@@ -49,7 +49,7 @@ pub struct ProductDetails {
 
     #[expect(unused)]
     #[serde(rename = "category-names")]
-    pub categorys: String,
+    pub categorys: Option<String>,
 }
 
 impl Into<crate::product::Product> for SparProduct {
@@ -57,7 +57,12 @@ impl Into<crate::product::Product> for SparProduct {
         let details = self.details;
 
         let id = format!("spar_{}", self.id);
-        let brand = details.ecr_brand;
+        let brand = details.ecr_brand.unwrap_or(
+            details
+                .brand
+                .unwrap_or(vec!["No brand".to_string()])
+                .join(", "),
+        );
         let name = details.name;
 
         let vendor = Vendor::Spar;
@@ -98,4 +103,8 @@ impl Into<crate::product::Product> for SparProduct {
             tags,
         }
     }
+}
+
+fn default_name() -> String {
+    "No name".to_string()
 }

@@ -24,6 +24,11 @@ async fn main() -> Result<()> {
         .with_state(db.clone());
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+
+    tokio::task::spawn(async move {
+        refresh(State(db)).await;
+    });
+
     axum::serve(listener, app).await?;
 
     Ok(())
