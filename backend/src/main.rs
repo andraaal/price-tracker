@@ -1,5 +1,9 @@
 use anyhow::Result;
-use axum::{Router, extract::State, routing::get};
+use axum::{
+    Router,
+    extract::{Query, State},
+    routing::get,
+};
 use std::env;
 
 use crate::db::DB;
@@ -8,6 +12,12 @@ mod adapters;
 mod client;
 mod db;
 mod product;
+
+#[derive(serde::Deserialize, Clone, Copy, Debug)]
+struct PageParams {
+    page: Option<u32>,
+    page_length: Option<u32>,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -34,8 +44,13 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn get_products(State(db): State<DB>) -> axum::Json<Vec<product::Product>> {
-    match db.get_all_products().await {
+async fn get_products(
+    State(db): State<DB>,
+    Query(query): Query<PageParams>,
+) -> axum::Json<Vec<product::Product>> {
+    let page = query.page.unwrap_or(1) - 1;
+    let len = query.page_length.unwrap_or(20);
+    match db.get_products(page as i32 * len as i32, len as i32).await {
         Ok(products) => axum::Json(products),
         Err(e) => {
             eprintln!("Error fetching products: {:?}", e);

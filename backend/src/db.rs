@@ -36,8 +36,10 @@ impl DB {
         Ok(())
     }
 
-    pub async fn get_all_products(&self) -> Result<Vec<Product>> {
-        let products = sqlx::query_as::<_, Product>("SELECT * FROM products")
+    pub async fn get_products(&self, start: i32, length: i32) -> Result<Vec<Product>> {
+        let products = sqlx::query_as::<_, Product>("SELECT * FROM products LIMIT $1 OFFSET $2")
+            .bind(length)
+            .bind(start)
             .fetch_all(&self.pool)
             .await?;
         Ok(products)

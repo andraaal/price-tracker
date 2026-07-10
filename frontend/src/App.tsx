@@ -11,6 +11,8 @@ function toEuro(cents: number) {
 function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageLength, setPageLength] = useState(20);
   const [search, setSearch] = useState("");
   const [vendorFilter, setVendorFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState("all");
@@ -18,13 +20,18 @@ function App() {
   const [sortBy, setSortBy] = useState<SortOption>("price-asc");
 
   useEffect(() => {
-    fetch("/api/products")
+    setLoading(true);
+    fetch(`/api/products?page=${page}&page_length=${pageLength}`)
       .then((r) => r.json())
       .then((data) => {
         setProducts(data);
         setLoading(false);
+      })
+      .catch(() => {
+        setProducts([]);
+        setLoading(false);
       });
-  }, []);
+  }, [page, pageLength]);
 
   const vendorOptions = useMemo(
     () =>
@@ -80,6 +87,12 @@ function App() {
     });
   }, [maxPrice, products, search, sortBy, tagFilter, vendorFilter]);
 
+  const hasPreviousPage = page > 1;
+  const hasNextPage = products.length === pageLength;
+  const pageStart = Math.max(1, page - 2);
+  const pageEnd = hasNextPage ? page + 2 : page;
+  const pageItems = Array.from({ length: pageEnd - pageStart + 1 }, (_, index) => pageStart + index);
+
   if (loading) {
     return <div className="container mt-4">Loading...</div>;
   }
@@ -93,6 +106,26 @@ function App() {
         </p>
 
         <div className="row g-3">
+          <div className="col-12 col-sm-6 col-lg-2">
+            <label htmlFor="page-length" className="form-label mb-1">
+              Page size
+            </label>
+            <select
+              id="page-length"
+              className="form-select"
+              value={pageLength}
+              onChange={(e) => {
+                setPage(1);
+                setPageLength(Number(e.target.value));
+              }}
+            >
+              <option value={12}>12</option>
+              <option value={20}>20</option>
+              <option value={36}>36</option>
+              <option value={48}>48</option>
+            </select>
+          </div>
+
           <div className="col-12 col-lg-4">
             <label htmlFor="search-input" className="form-label mb-1">
               Search
@@ -180,7 +213,7 @@ function App() {
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h2 className="h5 mb-0">Products</h2>
         <small className="text-muted">
-          Showing {filteredProducts.length} of {products.length}
+          Page {page} · Showing {filteredProducts.length} of {products.length}
         </small>
       </div>
 
@@ -201,6 +234,40 @@ function App() {
           Cheapest current product: <strong>{toEuro(filteredProducts[0].price)}</strong>
         </p>
       )}
+
+      <nav aria-label="Products pages" className="mt-3">
+        <ul className="pagination justify-content-center mb-0">
+          <li className={`page-item ${hasPreviousPage ? "" : "disabled"}`}>
+            <button
+              type="button"
+              className="page-link"
+              onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+              disabled={!hasPreviousPage}
+            >
+              Previous
+            </button>
+          </li>
+
+          {pageItems.map((pageNumber) => (
+            <li key={pageNumber} className={`page-item ${pageNumber === page ? "active" : ""}`}>
+              <button type="button" className="page-link" onClick={() => setPage(pageNumber)}>
+                {pageNumber}
+              </button>
+            </li>
+          ))}
+
+          <li className={`page-item ${hasNextPage ? "" : "disabled"}`}>
+            <button
+              type="button"
+              className="page-link"
+              onClick={() => setPage((currentPage) => currentPage + 1)}
+              disabled={!hasNextPage}
+            >
+              Next
+            </button>
+          </li>
+        </ul>
+      </nav>
     </div>
   );
 }
