@@ -6,17 +6,28 @@ use axum::{
 };
 use std::env;
 
-use crate::db::DB;
+use crate::{
+    db::DB,
+    filter::{Filter, Sort},
+    product::{tag::Tag, vendor::Vendor},
+};
 
 mod adapters;
 mod client;
 mod db;
+mod filter;
 mod product;
 
-#[derive(serde::Deserialize, Clone, Copy, Debug)]
-struct PageParams {
+#[derive(serde::Deserialize, Clone, Debug)]
+struct FilterParams {
     page: Option<u32>,
     page_length: Option<u32>,
+
+    search_string: Option<String>,
+    vendor: Option<Vendor>,
+    tag: Option<Tag>,
+    max_price: Option<i16>,
+    sort: Option<Sort>,
 }
 
 #[tokio::main]
@@ -42,11 +53,22 @@ async fn main() -> Result<()> {
 
 async fn get_products(
     State(db): State<DB>,
-    Query(query): Query<PageParams>,
+    Query(query): Query<FilterParams>,
 ) -> axum::Json<Vec<product::Product>> {
     let page = query.page.unwrap_or(1) - 1;
     let len = query.page_length.unwrap_or(20);
-    match db.get_products(page as i32 * len as i32, len as i32).await {
+    let filter = Filter {
+        search_string: query.search_string,
+        vendor: query.vendor,
+        tag: query.tag,
+        max_price: query.max_price,
+        sort: query.sort,
+    };
+    println!("Fetching products with filter: {:?}", filter);
+    match db
+        .get_products(page as i32 * len as i32, len as i32, filter)
+        .await
+    {
         Ok(products) => axum::Json(products),
         Err(e) => {
             eprintln!("Error fetching products: {:?}", e);

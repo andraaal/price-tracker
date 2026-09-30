@@ -1,4 +1,4 @@
-#[derive(sqlx::Type, Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[derive(sqlx::Type, Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[sqlx(type_name = "vendor")]
 pub enum Vendor {
     Spar,

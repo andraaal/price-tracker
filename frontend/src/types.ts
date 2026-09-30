@@ -16,3 +16,11 @@ export type PriceReference = {
   price: number;
   unit: string;
 };
+
+export type Filter = {
+  vendor: string;
+  tags: string[];
+  max_price: number;
+  sort: 'priceAsc' | 'priceDesc' | 'nameAsc' | 'nameDesc' | 'refAsc' | 'refDesc';
+  search_string: string;
+};

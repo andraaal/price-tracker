@@ -1,8 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Product } from "./types";
 import ProductCard from "./ProductCard";
 
-type SortOption = "price-asc" | "price-desc" | "name-asc" | "reference-asc";
+type SortOption = "PriceAsc" | "PriceDesc" | "NameAsc" | "NameDesc" | "RefAsc" | "RefDesc";
+
+const vendors = ["Spar"];
+
+const tags = [
+  "Organic",
+  "Vegan",
+  "Vegetarian",
+  "GlutenFree",
+  "LactoseFree",
+  "FairTrade",
+  "AMASigil",
+  "Cooled",
+  "Frozen",
+];
 
 function toEuro(cents: number) {
   return (cents / 100).toFixed(2) + " €";
@@ -13,16 +27,49 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pageLength, setPageLength] = useState(20);
+
   const [search, setSearch] = useState("");
-  const [vendorFilter, setVendorFilter] = useState("all");
-  const [tagFilter, setTagFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [vendorFilter, setVendorFilter] = useState("");
+  const [tagFilter, setTagFilter] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("price-asc");
+  const [sortBy, setSortBy] = useState<SortOption>("PriceAsc");
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/products?page=${page}&page_length=${pageLength}`)
-      .then((r) => r.json())
+
+    const params = new URLSearchParams({
+      page: String(page),
+      page_length: String(pageLength),
+    });
+
+    if (searchQuery.trim()) {
+      params.set("search_string", searchQuery.trim());
+    }
+
+    if (vendorFilter) {
+      params.set("vendor", vendorFilter);
+    }
+
+    if (tagFilter) {
+      params.set("tag", tagFilter);
+    }
+
+    const parsedMaxPrice = Number(maxPrice.replace(",", "."));
+
+    if (Number.isFinite(parsedMaxPrice) && parsedMaxPrice > 0) {
+      params.set("max_price", String(Math.round(parsedMaxPrice * 100)));
+    }
+
+    params.set("sort", sortBy);
+
+    fetch(`/api/products?${params}`)
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error("Failed to fetch products");
+        }
+        return r.json();
+      })
       .then((data) => {
         setProducts(data);
         setLoading(false);
@@ -31,67 +78,19 @@ function App() {
         setProducts([]);
         setLoading(false);
       });
-  }, [page, pageLength]);
+  }, [page, pageLength, searchQuery, vendorFilter, tagFilter, maxPrice, sortBy]);
 
-  const vendorOptions = useMemo(
-    () =>
-      [...new Set(products.map((p) => p.vendor))]
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b)),
-    [products],
-  );
-
-  const tagOptions = useMemo(
-    () =>
-      [...new Set(products.flatMap((p) => p.tags))]
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b)),
-    [products],
-  );
-
-  const filteredProducts = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-    const parsedMaxPrice = Number(maxPrice.replace(",", "."));
-    const maxPriceInCents =
-      Number.isFinite(parsedMaxPrice) && parsedMaxPrice > 0
-        ? Math.round(parsedMaxPrice * 100)
-        : Number.NaN;
-
-    const matches = products.filter((product) => {
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        [product.name, product.brand, product.vendor, product.quantity, ...product.tags]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedSearch);
-
-      const matchesVendor = vendorFilter === "all" || product.vendor === vendorFilter;
-      const matchesTag = tagFilter === "all" || product.tags.includes(tagFilter);
-      const matchesMaxPrice = Number.isNaN(maxPriceInCents) || product.price <= maxPriceInCents;
-
-      return matchesSearch && matchesVendor && matchesTag && matchesMaxPrice;
-    });
-
-    return matches.sort((a, b) => {
-      switch (sortBy) {
-        case "price-desc":
-          return b.price - a.price;
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        case "reference-asc":
-          return a.reference.price - b.reference.price;
-        case "price-asc":
-        default:
-          return a.price - b.price;
-      }
-    });
-  }, [maxPrice, products, search, sortBy, tagFilter, vendorFilter]);
+  const resetPage = () => setPage(1);
 
   const hasPreviousPage = page > 1;
   const hasNextPage = products.length === pageLength;
+
   const pageStart = Math.max(1, page - 2);
   const pageEnd = hasNextPage ? page + 2 : page;
-  const pageItems = Array.from({ length: pageEnd - pageStart + 1 }, (_, index) => pageStart + index);
+  const pageItems = Array.from(
+    { length: pageEnd - pageStart + 1 },
+    (_, index) => pageStart + index,
+  );
 
   if (loading) {
     return <div className="container mt-4">Loading...</div>;
@@ -133,9 +132,15 @@ function App() {
             <input
               id="search-input"
               className="form-control"
-              placeholder="Product, brand, vendor, tag..."
+              placeholder="Product, brand..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setSearchQuery(search);
+                  resetPage();
+                }
+              }}
             />
           </div>
 
@@ -147,10 +152,13 @@ function App() {
               id="vendor-filter"
               className="form-select"
               value={vendorFilter}
-              onChange={(e) => setVendorFilter(e.target.value)}
+              onChange={(e) => {
+                setVendorFilter(e.target.value);
+                resetPage();
+              }}
             >
-              <option value="all">All vendors</option>
-              {vendorOptions.map((vendor) => (
+              <option value="">All vendors</option>
+              {vendors.map((vendor) => (
                 <option key={vendor} value={vendor}>
                   {vendor}
                 </option>
@@ -166,10 +174,13 @@ function App() {
               id="tag-filter"
               className="form-select"
               value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value)}
+              onChange={(e) => {
+                setTagFilter(e.target.value);
+                resetPage();
+              }}
             >
-              <option value="all">All tags</option>
-              {tagOptions.map((tag) => (
+              <option value="">All tags</option>
+              {tags.map((tag) => (
                 <option key={tag} value={tag}>
                   {tag}
                 </option>
@@ -199,12 +210,17 @@ function App() {
               id="sort-filter"
               className="form-select"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              onChange={(e) => {
+                setSortBy(e.target.value as SortOption);
+                resetPage();
+              }}
             >
-              <option value="price-asc">Price: low to high</option>
-              <option value="price-desc">Price: high to low</option>
-              <option value="name-asc">Name: A-Z</option>
-              <option value="reference-asc">Reference price: low to high</option>
+              <option value="PriceAsc">Price: low to high</option>
+              <option value="PriceDesc">Price: high to low</option>
+              <option value="NameAsc">Name: A-Z</option>
+              <option value="NameDesc">Name: Z-A</option>
+              <option value="RefAsc">Reference price: low to high</option>
+              <option value="RefDesc">Reference price: high to low</option>
             </select>
           </div>
         </div>
@@ -213,15 +229,15 @@ function App() {
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h2 className="h5 mb-0">Products</h2>
         <small className="text-muted">
-          Page {page} · Showing {filteredProducts.length} of {products.length}
+          Page {page} · Showing {products.length}
         </small>
       </div>
 
-      {filteredProducts.length === 0 ? (
+      {products.length === 0 ? (
         <div className="alert alert-secondary">No products match the current filters.</div>
       ) : (
         <div className="row">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <div className="col-12 col-md-6 col-xl-4 mb-4" key={product.id}>
               <ProductCard product={product} />
             </div>
@@ -229,9 +245,9 @@ function App() {
         </div>
       )}
 
-      {filteredProducts.length > 0 && (
+      {products.length > 0 && (
         <p className="text-muted small mb-0">
-          Cheapest current product: <strong>{toEuro(filteredProducts[0].price)}</strong>
+          Cheapest current product: <strong>{toEuro(products[0].price)}</strong>
         </p>
       )}
 
