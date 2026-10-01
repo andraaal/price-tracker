@@ -78,6 +78,12 @@ async fn get_products(
 }
 
 async fn refresh(State(db): State<DB>) -> &'static str {
+    tokio::spawn(fetch_products(db))
+        .await
+        .expect("Error while fetching items")
+}
+
+async fn fetch_products(db: DB) -> &'static str {
     match fetch_items(&db).await {
         Ok(_) => "Items fetched and saved successfully.",
         Err(e) => {
