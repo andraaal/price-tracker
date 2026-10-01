@@ -3,7 +3,7 @@ Lets you inspect, filter and search the prices of the austrian store "SPAR".
 
 ![Image of the website](./hero.png)
 
-## [Try it yourself!](http://130.61.112.133/)
+## [Try it yourself!](http://draaal.crabdance.com/)
 
 ## Features
 - See details about every product SPAR offers (Name, brand, vendor, amount, price, reference price, image)
